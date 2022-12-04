@@ -1,0 +1,26 @@
+<!-- Navbar -->
+<nav
+  id="navbar"
+  class="flex flex-wrap items-center justify-between w-full py-0 px-4 text-lg text-gray-700 bg-white font-bold"
+>
+  <div class="order-first">
+    <a class="md:p-4 py-2 block hover:text-gray-400 text-xl" href="#">Home</a>
+  </div>
+  <div class="order-last">
+    {% if "user_name" in session %}
+    <p class="md:p-4 py-2 block text-sm">Hello, {{ session["user_name"] }}</p>
+    {% else %}
+    <div>
+      <a
+        class="md:p-4 py-2 block hover:text-gray-400 text-sm"
+        href="#"
+        hx-get="/login"
+        hx-swap="outerHTML"
+      >
+        Login
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+<!-- Navbar -->

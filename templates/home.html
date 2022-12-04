@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if session["user_name"] %}
+
+<div class="w-full mx-auto flex lg:flex-row flex-col justify-between">
+  <form 
+    action="/user/leaderboard"
+    method="post"
+    class="lg:w-5/12 w-full">
+    <textarea
+      id="personal_leaderboard_input" 
+      style="white-space: pre-wrap"
+      class="p-2 rounded mx-auto w-full"
+      name="personal_leaderboard" 
+      type="textarea"
+      rows="15"
+      cols="60"
+      placeholder="Enter you personal leaderboard...
+
+        --------Part 1--------   --------Part 2--------
+  Day       Time   Rank  Score       Time   Rank  Score
+    3   00:00:00   ----      0   00:00:00   ----      0
+    2   00:00:00   ----      0   00:00:00   ----      0
+    1   00:00:00   ----      0   00:00:00   ----      0
+    "></textarea>
+
+    <button class="text-white font-bold bg-gray-600 p-2 rounded w-full">
+      submit
+    </button>
+  </form>
+  
+  <div class="lg:w-5/12 w-full">
+    <h2 class="underline">Current Leaderboard</h2>
+
+    <textarea
+      id="personal_leaderboard_input" 
+      style="white-space: pre-wrap"
+      class="p-2 rounded mx-auto w-full bg-gray-200 outline-none"
+      name="personal_leaderboard" 
+      type="textarea"
+      rows="15"
+      cols="60"
+      readonly>
+    {% if personal_leaderboard %}
+      {{ personal_leaderboard }}
+    {% else %}
+      ...no leaderboard uploaded yet
+    {% endif %}
+    </textarea>
+  </div>
+
+</div>
+
+{% endif %}
+
+{#
+<div class="w-100 text-center">
+  <h1 class="text-3xl font-bold underline">
+    Hello world!
+  </h1>
+</div>
+#}
+
+{% endblock %}
