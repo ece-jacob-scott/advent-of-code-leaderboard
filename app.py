@@ -124,7 +124,8 @@ def user_leaderboard():
         abort(500)
         return
 
-    personal_leaderboard = escape(request.form["personal_leaderboard"])
+    personal_leaderboard = escape(
+        request.form["personal_leaderboard"].replace(">", ""))
 
     user.leaderboard = personal_leaderboard.strip()
 
@@ -192,7 +193,7 @@ def server_error(e):
 @app.errorhandler(Exception)
 def generic_handler(e):
     logger.error(e)
-    return render_template("flash_message.html"), 500
+    return render_template("error.html"), 200
 
 
 @app.cli.command("init_db")

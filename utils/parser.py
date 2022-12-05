@@ -4,6 +4,17 @@ from datetime import time
 
 
 def __parse_time(time: str) -> Dict[str, int]:
+    time_split = time.split(":")
+
+    if len(time_split) == 1:
+        # case of time = "24h"
+        return {
+            "hours": 99,
+            "minutes": 99,
+            "seconds": 99,
+            "string": time
+        }
+
     (hours, minutes, seconds) = time.split(":")
 
     return {
