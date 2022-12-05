@@ -2,7 +2,10 @@
 
 {% block content %}
 
+{% include "leaderboard.html" %}
+
 {% if session["user_name"] %}
+<div class="px-4 py-3 bg-gray-200 rounded hover:shadow-lg">
 
 <div class="w-full mx-auto flex lg:flex-row flex-col justify-between">
   <form 
@@ -26,18 +29,18 @@
     1   00:00:00   ----      0   00:00:00   ----      0
     "></textarea>
 
-    <button class="text-white font-bold bg-gray-600 p-2 rounded w-full">
+    <button class="text-white hover:text-gray-600 font-bold bg-gray-600 hover:bg-gray-300 p-2 rounded w-full">
       submit
     </button>
   </form>
   
   <div class="lg:w-5/12 w-full">
-    <h2 class="underline">Current Leaderboard</h2>
+    <h1 class="underline text-xl font-bold">Current Leaderboard</h1>
 
     <textarea
       id="personal_leaderboard_input" 
       style="white-space: pre-wrap"
-      class="p-2 rounded mx-auto w-full bg-gray-200 outline-none"
+      class="p-2 rounded mx-auto w-full bg-gray-200 outline-none font-bold"
       name="personal_leaderboard" 
       type="textarea"
       rows="15"
@@ -52,8 +55,10 @@
   </div>
 
 </div>
+</div>
 
 {% endif %}
+
 
 {#
 <div class="w-100 text-center">

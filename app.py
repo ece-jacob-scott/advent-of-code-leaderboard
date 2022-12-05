@@ -3,6 +3,8 @@ from werkzeug import exceptions
 from loguru import logger
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
+from typing import List, Dict
+from utils.parser import parse_leaderboard
 
 db = SQLAlchemy()
 sess = Session()
@@ -41,6 +43,37 @@ def validate_session() -> bool:
     return True
 
 
+def leaderboard_data(day: int):
+    users: List[User] = User.query.all()
+
+    leaderboard = {
+        "show_day": day,
+        "days": [],
+        "data": []
+    }
+
+    # rank each user each day and then overall
+    days = set()
+    for user in users:
+        leaderboard_stats = parse_leaderboard(user.leaderboard)
+
+        # TODO: this just puts people on the leaderboard, put them in the right
+        #       order and rank them
+        for day_stat in leaderboard_stats:
+            days.add(day_stat["day"])
+
+            if not day_stat["day"] == day:
+                continue
+
+            day_stat["user"] = user.user_name
+
+            leaderboard["data"].append(day_stat)
+
+    leaderboard["days"] = list(days)
+
+    return leaderboard
+
+
 @app.route("/")
 def hello_world():
     valid_session = validate_session()
@@ -51,7 +84,20 @@ def hello_world():
         user: User = db.session.get(User, session["user_id"])
         personal_leaderboard = user.leaderboard
 
-    return render_template("home.html", personal_leaderboard=personal_leaderboard)
+    global_leaderboard = leaderboard_data(1)
+    global_leaderboard["show_title"] = True
+
+    return render_template(
+        "home.html",
+        personal_leaderboard=personal_leaderboard,
+        leaderboard=global_leaderboard)
+
+
+@app.get("/leaderboard/day/<int:day>")
+def get_leaderboard(day: int):
+    logger.info(f'request for leaderboard day {day}')
+
+    return render_template("leaderboard.html", leaderboard=leaderboard_data(day))
 
 
 @app.post("/user/leaderboard")

@@ -1,5 +1,17 @@
 from pprint import pp
-from typing import List
+from typing import List, Dict
+from datetime import time
+
+
+def __parse_time(time: str) -> Dict[str, int]:
+    (hours, minutes, seconds) = time.split(":")
+
+    return {
+        "hours": int(hours, base=10),
+        "minutes": int(minutes, base=10),
+        "seconds": int(seconds, base=10),
+        "string": time
+    }
 
 
 def parse_leaderboard(leaderboard: str) -> List[List[str]]:
@@ -12,11 +24,37 @@ def parse_leaderboard(leaderboard: str) -> List[List[str]]:
 
     lines = list(map(clean, lines))
 
+    # go through and parse everything into a data structure that makes sense
+    for i in range(len(lines)):
+        stat = lines[i]
+
+        data = {
+            "day": 0,
+            "problem_one": {
+                "time": "",
+                "rank": ""
+            },
+            "problem_two": {
+                "time": "",
+                "rank": ""
+
+            }
+        }
+
+        (day, problem_one_time, problem_one_rank, *rest_of_stats) = stat
+        data["day"] = int(day, base=10)
+        data["problem_one"]["time"] = __parse_time(problem_one_time)
+        data["problem_one"]["rank"] = int(problem_one_rank, base=10)
+        # still don't know what to do with empty days so just empty strings for
+        # now
+        if len(stat) > 4:
+            (_, problem_two_time, problem_two_rank, _) = rest_of_stats
+            data["problem_two"]["time"] = __parse_time(problem_two_time)
+            data["problem_two"]["rank"] = int(problem_two_rank, base=10)
+
+        lines[i] = data
+
     return lines
-
-
-# take the time for each problem
-# take the rank for each problem
 
 
 if __name__ == '__main__':

@@ -1,0 +1,110 @@
+{% if leaderboard %}
+
+
+{% if leaderboard["show_title"]  %}
+
+<div class="px-4 py-1 bg-gray-200 rounded hover:shadow-md">
+
+<h1 class="underline text-xl font-bold">Leaderboard</h1>
+
+<div class="p-1"></div>
+
+{% endif %}
+
+<div id="global_leaderboard" class="w-full flex flex-row items-center">
+  <div class="w-1/6">
+    <div class="flex flex-col items-center justify-center">
+      {% for day in leaderboard["days"] %}
+      <button
+        {% if day == leaderboard["show_day"] %}
+        class="text-white font-bold bg-gray-900 p-2 rounded w-full"
+        disabled
+        {% else %}
+        class="text-white hover:text-gray-600 font-bold bg-gray-600 hover:bg-gray-300 p-2 rounded w-full hover:shadow-md"
+        {% endif %}
+        hx-get="/leaderboard/day/{{day}}"
+        hx-swap="outerHTML"
+        hx-target="#global_leaderboard"
+      >
+        day {{ day }}
+      </button>
+      <div class="p-1"></div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="w-5/6 text-center p-4">
+    <table class="table-auto mx-auto bg-gray-50 rounded">
+      <thead class="border-b border-b-gray-400">
+        <tr>
+          <th
+            class="px-6 py-4 whitespace-nowrap text-lg font-bold text-slate-900"
+          >
+            User
+          </th>
+          <th
+            class="px-6 py-4 whitespace-nowrap text-lg font-bold text-slate-900"
+          >
+            Rank Problem 1
+          </th>
+          <th
+            class="px-6 py-4 whitespace-nowrap text-lg font-bold text-slate-900"
+          >
+            Time Problem 1
+          </th>
+          <th
+            class="px-6 py-4 whitespace-nowrap text-lg font-bold text-slate-900"
+          >
+            Rank Problem 2
+          </th>
+          <th
+            class="px-6 py-4 whitespace-nowrap text-lg font-bold text-slate-900"
+          >
+            Time Problem 2
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for data in leaderboard["data"] %}
+        <tr class="border-b border-b-gray-400">
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600"
+          >
+            {{ data["user"] }}
+          </td>
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600"
+          >
+            {{ data["problem_one"]["rank"] }}
+          </td>
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600"
+          >
+            {{ data["problem_one"]["time"]["string"] }}
+          </td>
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600"
+          >
+            {{ data["problem_two"]["rank"] }}
+          </td>
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600"
+          >
+            {{ data["problem_two"]["time"]["string"] }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if leaderboard["show_title"]  %}
+
+</div>
+
+<div class="p-1"></div>
+
+{% endif %}
+
+
+{% endif %}
