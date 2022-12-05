@@ -12,6 +12,7 @@ loguru==0.6.0
 Mako==1.2.4
 MarkupSafe==2.1.1
 nodeenv==1.7.0
+psycopg2-binary==2.9.5
 pyright==1.1.282
 python-dotenv==0.21.0
 SQLAlchemy==1.4.44
