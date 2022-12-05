@@ -9,6 +9,5 @@ DEBUG = True
 FLASK_ENV = environ.get("ENV")
 SECRET_KEY = environ.get("SECRET_KEY")
 SQLALCHEMY_DATABASE_URI = environ.get("DB_URL")
-SESSION_PERMANENT = False
-SESSION_TYPE = "filesystem"
-
+SESSION_PERMANENT = True
+SESSION_TYPE = "sqlalchemy"

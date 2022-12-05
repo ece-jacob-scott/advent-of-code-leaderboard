@@ -2,7 +2,8 @@ from flask import Flask, render_template, current_app, session, request, flash, 
 from werkzeug import exceptions
 from loguru import logger
 from flask_sqlalchemy import SQLAlchemy
-from flask_session import Session
+from flask_session import Session, SqlAlchemySessionInterface
+from flask_migrate import Migrate
 from typing import List, Dict
 from utils.parser import parse_leaderboard
 
@@ -10,22 +11,19 @@ db = SQLAlchemy()
 sess = Session()
 app = Flask(__name__)
 app.config.from_pyfile("config.py")
+
+migrate = Migrate(app, db)
+
+# order matters https://stackoverflow.com/questions/46029406/do-i-need-to-create-a-sessions-table-to-use-flask-session-sqlalchemysessioninter
 db.init_app(app)
+migrate.init_app(app)
 sess.init_app(app)
+SqlAlchemySessionInterface(app, db, "sessions", "sess_")
 
 
-class User(db.Model):
-    __tablename__ = "users"
-    id: int = db.Column(db.Integer, primary_key=True)
-    user_name: str = db.Column(db.String(120), unique=True)
-    leaderboard: str = db.Column(db.Text())
-
-    def __init__(self, user_name=None):
-        self.user_name = user_name
-        self.leaderboard = ""
-
-    def __repr__(self):
-        return f'<Entry {self.user_name!r}>'
+# fmt: off
+from models import User 
+# fmt: on
 
 
 def validate_session() -> bool:
@@ -55,6 +53,9 @@ def leaderboard_data(day: int):
     # rank each user each day and then overall
     days = set()
     for user in users:
+        if user.leaderboard == "":
+            continue
+
         leaderboard_stats = parse_leaderboard(user.leaderboard)
 
         # TODO: this just puts people on the leaderboard, put them in the right
@@ -97,7 +98,8 @@ def hello_world():
 def get_leaderboard(day: int):
     logger.info(f'request for leaderboard day {day}')
 
-    return render_template("leaderboard.html", leaderboard=leaderboard_data(day))
+    return render_template(
+        "leaderboard.html", leaderboard=leaderboard_data(day))
 
 
 @app.post("/user/leaderboard")
@@ -123,8 +125,6 @@ def user_leaderboard():
         return
 
     personal_leaderboard = escape(request.form["personal_leaderboard"])
-
-    logger.info(personal_leaderboard)
 
     user.leaderboard = personal_leaderboard.strip()
 
@@ -168,7 +168,7 @@ def login():
 @app.errorhandler(404)
 def not_authorized(e):
     logger.error(e)
-    return render_template("flash_message.html"), 401
+    return render_template("flash_message.html"), 404
 
 
 @app.errorhandler(401)
