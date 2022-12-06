@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session, SqlAlchemySessionInterface
 from flask_migrate import Migrate
 from typing import List, Dict
-from utils.parser import parse_leaderboard
+from utils.parser import parse_leaderboard, validate_leaderboard
 
 db = SQLAlchemy()
 sess = Session()
@@ -126,6 +126,11 @@ def user_leaderboard():
 
     personal_leaderboard = escape(
         request.form["personal_leaderboard"].replace(">", ""))
+
+    # validate the input here
+    if not validate_leaderboard(personal_leaderboard):
+        flash("leaderboard input was invalid try again")
+        return redirect("/")
 
     user.leaderboard = personal_leaderboard.strip()
 

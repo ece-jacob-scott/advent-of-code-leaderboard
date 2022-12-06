@@ -25,6 +25,40 @@ def __parse_time(time: str) -> Dict[str, int]:
     }
 
 
+# could swap this out with a nice regex but I don't know how to do that yet
+def validate_leaderboard(leaderboard: str) -> bool:
+    lines = list(filter(lambda x: x != "", map(
+        lambda x: x.strip(), leaderboard.split("\n"))))
+
+    # validate first line
+    # rule: the title line needs to have at least "Part 1"
+    if not "Part 1" in lines[0]:
+        print("HERE2")
+        return False
+
+    # validate second line
+    # rule: the second line needs to have this piece of text
+    def contains(line, words):
+        for word in words:
+            if not word in line:
+                return False
+
+        return True
+
+    if not contains(lines[1], ["Day", "Time", "Rank", "Score"]):
+        print("HERE3")
+        return False
+
+    # validate length of entries
+    # rule: need to have at least 1 entry and no more than 25
+    if len(lines[1:]) < 1 or len(lines[1:]) > 25:
+        print("HERE1")
+        return False
+
+    # write a regex to validate the entry values
+    return True
+
+
 def parse_leaderboard(leaderboard: str) -> List[List[str]]:
     lines = list(filter(lambda x: x.strip() != "",
                  leaderboard.splitlines()))[2:]
@@ -84,5 +118,21 @@ Day       Time   Rank  Score       Time   Rank  Score
   2   00:28:05  10929      0   00:39:37  10608      0
   1   00:04:24   2194      0   00:06:32   2084      0
     """
-    pp(parse_leaderboard(leaderboard))
-    pp(parse_leaderboard(leaderboard_no_two_star))
+
+    leaderboard_24_hour = """
+    --------Part 1---------   --------Part 2---------
+Day       Time    Rank  Score       Time    Rank  Score
+  4   02:03:52   21022      0   02:20:46   21242      0
+  3   02:09:12   20922      0   02:47:23   21268      0
+  2       >24h  121380      0       >24h  115438      0
+  1   12:48:47   87903      0   12:53:13   83407      0
+
+    """
+
+    pp(validate_leaderboard(leaderboard))
+    pp(validate_leaderboard(leaderboard_no_two_star))
+    pp(validate_leaderboard(leaderboard_24_hour))
+
+    # pp(parse_leaderboard(leaderboard))
+    # pp(parse_leaderboard(leaderboard_no_two_star))
+    # pp(parse_leaderboard(leaderboard_24_hour))
