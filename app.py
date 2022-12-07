@@ -77,6 +77,7 @@ def leaderboard_data(day: int):
 
 @app.route("/")
 def hello_world():
+    logger.info(request.headers)
     valid_session = validate_session()
 
     personal_leaderboard = None
@@ -141,6 +142,7 @@ def user_leaderboard():
 
 @app.get("/login")
 def login_form():
+    logger.info(request.headers)
     return render_template("login_inline.html")
 
 
@@ -171,34 +173,41 @@ def login():
     return redirect("/")
 
 
+def error_handler(code: int = 500):
+    if request.headers.get("Hx-Request"):
+        return render_template("flash_message.html"), code
+
+    return render_template("error.html"), 200
+
+
 @app.errorhandler(404)
 def not_authorized(e):
     logger.error(e)
-    return render_template("flash_message.html"), 404
+    return error_handler(404)
 
 
 @app.errorhandler(401)
 def not_authorized(e):
     logger.error(e)
-    return render_template("flash_message.html"), 401
+    return error_handler(401)
 
 
 @app.errorhandler(422)
 def bad_form_input(e):
     logger.error(e)
-    return render_template("flash_message.html"), 422
+    return error_handler(422)
 
 
 @app.errorhandler(exceptions.HTTPException)
 def server_error(e):
     logger.error(e)
-    return render_template("flash_message.html"), 500
+    return error_handler(500)
 
 
 @app.errorhandler(Exception)
 def generic_handler(e):
     logger.error(e)
-    return render_template("error.html"), 200
+    return error_handler(500)
 
 
 @app.cli.command("init_db")
