@@ -76,8 +76,7 @@ def leaderboard_data(day: int):
 
 
 @app.route("/")
-def hello_world():
-    logger.info(request.headers)
+def home():
     valid_session = validate_session()
 
     personal_leaderboard = None
@@ -142,7 +141,6 @@ def user_leaderboard():
 
 @app.get("/login")
 def login_form():
-    logger.info(request.headers)
     return render_template("login_inline.html")
 
 
