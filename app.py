@@ -1,4 +1,5 @@
 from flask import Flask, render_template, current_app, session, request, flash, abort, redirect, escape
+from urllib.parse import urlencode
 from werkzeug import exceptions
 from loguru import logger
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +7,7 @@ from flask_session import Session, SqlAlchemySessionInterface
 from flask_migrate import Migrate
 from typing import List, Dict
 from utils.parser import parse_leaderboard, validate_leaderboard
+from requests import post, get
 
 db = SQLAlchemy()
 sess = Session()
@@ -76,7 +78,7 @@ def leaderboard_data(day: int):
 
 
 @app.route("/")
-def home():
+def index():
     valid_session = validate_session()
 
     personal_leaderboard = None
@@ -147,26 +149,120 @@ def login_form():
 # technically this is login and signup for now
 @app.post("/login")
 def login():
-    if not "user_name" in request.form or not request.form["user_name"]:
-        # how to handle this error?
-        flash("form was submitted empty")
-        abort(422)
-        return
+    # create the request
+    url = "https://github.com/login/oauth/authorize"
 
-    user_name = request.form["user_name"]
+    params = {
+        "client_id": app.config["GITHUB_CLIENT_ID"],
+        "scope": "user",
+    }
 
-    user = User.query.filter_by(user_name=user_name).first()
+    url = url + "?" + urlencode(params)
 
-    if not user:
-        new_user = User(user_name=user_name)
+    logger.info(f'redirecting to {url}')
 
+    return redirect(url)
+
+
+@app.post("/logout")
+def logout():
+    # delete the github token from the user and the session
+    if "user_id" in session:
+        user: User = db.session.get(User, session["user_id"])
+
+        if user:
+            user.github_access_token = ""
+            db.session.commit()
+
+    session.pop("user_id", None)
+    session.pop("user_name", None)
+    session.pop("github_access_token", None)
+
+    return redirect("/")
+
+
+@app.get("/api/auth/callback/github")
+def get_auth_handler():
+    args = request.args
+
+    if not "code" in args:
+        logger.error("code did not get sent in args")
+        flash("error authenticating you")
+        return redirect("/")
+
+    temp_auth_code = args["code"]
+
+    url = "https://github.com/login/oauth/access_token"
+
+    params = {
+        "client_id": app.config["GITHUB_CLIENT_ID"],
+        "client_secret": app.config["GITHUB_CLIENT_SECRET"],
+        "code": temp_auth_code,
+    }
+
+    url = url + "?" + urlencode(params)
+
+    res = post(url, headers={
+        "Accept": "application/json"
+    })
+
+    if res.status_code > 299 or res.status_code < 200:
+        logger.error(f'oauth access_token request failed [{res.status_code}]')
+        flash("error authenticating you")
+        return redirect("/")
+
+    json_response = res.json()
+
+    if not "access_token" in json_response:
+        logger.error("no access_token in github oauth response")
+        flash("error authenticating you")
+        return redirect("/")
+
+    access_token = json_response["access_token"]
+
+    user_info = get("https://api.github.com/user", headers={
+        "Authorization": "Bearer " + access_token,
+        "Accept": "application/json",
+    })
+
+    if user_info.status_code > 299 or user_info.status_code < 200:
+        logger.error(f'getting user info failed [{user_info.status_code}]')
+        flash("error authenticating you")
+        return redirect("/")
+
+    user_emails = get("https://api.github.com/user/emails", headers={
+        "Authorization": "Bearer " + access_token,
+        "Accept": "application/json",
+    })
+
+    if user_emails.status_code > 299 or user_emails.status_code < 200:
+        logger.error(f'getting user emails failed [{user_emails.status_code}]')
+        flash("error authenticating you")
+        return redirect("/")
+
+    user_primary_email = list(
+        filter(lambda e: e["primary"], user_emails.json()))[0]
+
+    session["github_access_token"] = access_token
+    user_info_obj = user_info.json()
+
+    existing_user = User.query.filter_by(
+        user_name=user_info_obj["login"]).first()
+
+    if not existing_user:
+        new_user = User(
+            user_name=user_info_obj["login"],
+            email=user_primary_email["email"],
+            github_access_token=access_token)
         db.session.add(new_user)
         db.session.commit()
-
-    user: User = User.query.filter_by(user_name=user_name).first()
-
-    session["user_id"] = user.id
-    session["user_name"] = user.user_name
+        session["user_id"] = new_user.id
+        session["user_name"] = new_user.user_name
+        logger.info(f'created new user {user_info_obj["login"]}')
+    else:
+        session["user_id"] = existing_user.id
+        session["user_name"] = existing_user.user_name
+        logger.info(f'logged in existing_user {existing_user.user_name}')
 
     return redirect("/")
 

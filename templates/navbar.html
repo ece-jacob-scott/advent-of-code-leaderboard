@@ -8,18 +8,25 @@
   </div>
   <div class="order-last">
     {% if "user_name" in session %}
-    <p class="md:p-4 py-2 block text-sm">Hello, {{ session["user_name"] }}</p>
-    {% else %}
-    <div>
-      <a
-        class="md:p-4 py-2 block hover:text-gray-400 text-sm"
-        href="#"
-        hx-get="/login"
-        hx-swap="outerHTML"
-      >
-        Login
-      </a>
+    <div class="flex flex-row items-center">
+      <p class="md:p-4 py-2 block text-sm">
+        Hello, {{ session["user_name"] }}
+      </p>
+
+      <form
+        action="/logout"
+        method="post">
+          <button class="bg-gray-500 text-sm capitalize text-white px-2 py-1 rounded">Logout</button>
+      </form>
     </div>
+    {% else %}
+    <form
+      action="/login"
+      method="post"
+      class="flex flex-row"
+    >
+      <button class="bg-gray-500 text-sm capitalize text-white px-2 py-1 rounded">Login with Github</button>
+    </form>
     {% endif %}
   </div>
 </nav>
