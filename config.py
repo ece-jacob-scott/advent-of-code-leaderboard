@@ -13,6 +13,7 @@ SESSION_PERMANENT = True
 SESSION_TYPE = "sqlalchemy"
 GITHUB_CLIENT_ID = environ.get("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = environ.get("GITHUB_CLIENT_SECRET")
+ADMIN_EMAILS = environ.get("ADMIN_EMAILS")
 
 # hopefully this fixes the issue where pg connection gets GC'd
 # https://stackoverflow.com/questions/58866560/flask-sqlalchemy-pool-pre-ping-only-working-sometimes

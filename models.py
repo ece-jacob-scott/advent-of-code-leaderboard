@@ -13,7 +13,7 @@ class User(db.Model):
         self.user_name = user_name
         self.leaderboard = ""
         self.github_access_token = github_access_token
-        self.email = ""
+        self.email = email
 
     def __repr__(self):
         return f'<Entry {self.user_name!r}>'

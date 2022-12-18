@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% include "leaderboard.html" %}
+
+{% if session["user_name"] %}
+<div class="px-4 py-3 bg-gray-200 rounded hover:shadow-lg">
+<div 
+    id="UserList"
+    class="w-full mx-auto flex lg:flex-row flex-col justify-between">
+
+  {% include "admin_user_list.html" %}
+
+</div>
+</div>
+
+{% endif %}
+
+{% endblock %}

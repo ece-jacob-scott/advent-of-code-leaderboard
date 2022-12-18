@@ -28,7 +28,7 @@ from models import User
 # fmt: on
 
 
-def validate_session() -> bool:
+def validate_session(check_admin=False) -> bool:
     if not "user_name" in session:
         return False
 
@@ -38,6 +38,12 @@ def validate_session() -> bool:
         if not user:
             session.pop("user_id")
             session.pop("user_name")
+            return False
+
+        admin_emails = app.config["ADMIN_EMAILS"].split(",")
+
+        if (not user.email in admin_emails) and check_admin:
+            logger.error(f'user {user.email} tried to access admin panel')
             return False
 
     return True
@@ -241,7 +247,9 @@ def get_auth_handler():
         return redirect("/")
 
     user_primary_email = list(
-        filter(lambda e: e["primary"], user_emails.json()))[0]
+        filter(lambda e: e["primary"], user_emails.json()))[0]["email"]
+
+    logger.info(f'user_email = {user_primary_email}')
 
     session["github_access_token"] = access_token
     user_info_obj = user_info.json()
@@ -252,19 +260,53 @@ def get_auth_handler():
     if not existing_user:
         new_user = User(
             user_name=user_info_obj["login"],
-            email=user_primary_email["email"],
+            email=user_primary_email,
             github_access_token=access_token)
         db.session.add(new_user)
         db.session.commit()
         session["user_id"] = new_user.id
         session["user_name"] = new_user.user_name
-        logger.info(f'created new user {user_info_obj["login"]}')
+        logger.info(f'created new user with email {new_user.email}')
     else:
         session["user_id"] = existing_user.id
         session["user_name"] = existing_user.user_name
         logger.info(f'logged in existing_user {existing_user.user_name}')
 
     return redirect("/")
+
+
+@app.get("/admin")
+def admin_route():
+    if not validate_session(check_admin=True):
+        flash("you are not an admin")
+        return redirect("/")
+
+    users = User.query.all()
+
+    return render_template("admin_panel.html",
+                           users=users)
+
+
+@app.delete("/admin/user")
+def delete_user():
+    logger.info("here")
+    if not validate_session(check_admin=True):
+        flash("you are not an admin")
+        return redirect("/")
+
+    user_id = request.args.get("user_id", None)
+
+    if not user_id:
+        flash("that user does not exist")
+        return redirect("/admin")
+
+    User.query.filter_by(id=user_id).delete()
+    db.session.commit()
+
+    users = User.query.all()
+
+    return render_template("admin_user_list.html",
+                           users=users)
 
 
 def error_handler(code: int = 500):
