@@ -12,5 +12,5 @@ it so that you can have a local leaderboard and not compete on a global scale.
 - [X] Github OAuth for login
 - [X] Leaderboard input validation 
 - [ ] Add colors
-- [ ] Create a video that shows how to get the leaderboard value
+
 - [X] Add favicon
